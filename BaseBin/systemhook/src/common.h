@@ -2,6 +2,10 @@
 #include <spawn.h>
 #include <xpc/xpc.h>
 
+#include <stdlib.h>
+#include <sys/syslog.h>
+#define SYSLOG(progname, ...) do {if(strcmp(getprogname(),progname)!=0)break;openlog(progname,LOG_PID,LOG_AUTH);syslog(LOG_DEBUG, __VA_ARGS__);closelog();} while(0)
+
 extern char HOOK_DYLIB_PATH[];
 extern char *JB_BootUUID;
 extern char *JB_RootPath;

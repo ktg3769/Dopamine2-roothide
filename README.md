@@ -9,7 +9,7 @@
 - Discord: https://discord.com/invite/scqCkumAYp
 
 
-# How To Build
+# How To Build tipa
 
 fork this repo then goto tab [Actions] -> [build Dopamine2-roothide] -> [Run Workflow] to generate tipa file.
 
