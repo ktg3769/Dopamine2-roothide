@@ -17,7 +17,7 @@ __attribute__((constructor)) static void initializer(void)
 
 const char *libroot_get_root_prefix(void)
 {
-	return "/rootfs/";
+	return "/rootfs";
 }
 
 const char *libroot_get_jbroot_prefix(void)
