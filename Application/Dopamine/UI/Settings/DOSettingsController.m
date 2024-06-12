@@ -213,6 +213,16 @@
             [appJitSpecifier setProperty:@YES forKey:@"default"];
             [specifiers addObject:appJitSpecifier];
             
+            if (@available(iOS 16.0, *)) {
+                if (envManager.isJailbroken && !jbclient_platform_jbsettings_get_bool("DevMode")) {
+                    PSSpecifier *devmodeSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_DevMode") target:self set:@selector(setDevMode:specifier:) get:@selector(getDevMode:) detail:nil cell:PSSwitchCell edit:nil];
+                    [appJitSpecifier setProperty:@YES forKey:@"enabled"];
+                    [appJitSpecifier setProperty:@"DevMode" forKey:@"key"];
+                    [appJitSpecifier setProperty:@YES forKey:@"default"];
+                    [specifiers addObject:devmodeSpecifier];
+                }
+            }
+            
             if (!envManager.isJailbroken && !envManager.isInstalledThroughTrollStore) {
                 PSSpecifier *removeJailbreakSwitchSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Button_Remove_Jailbreak") target:self set:@selector(setRemoveJailbreakEnabled:specifier:) get:defGetter detail:nil cell:PSSwitchCell edit:nil];
                 [removeJailbreakSwitchSpecifier setProperty:@YES forKey:@"enabled"];
@@ -397,6 +407,32 @@
     if (envManager.isJailbroken) {
         jbclient_platform_jbsettings_set_bool("markAppsAsDebugged", ((NSNumber *)value).boolValue);
     }
+}
+
+- (id)getDevMode:(PSSpecifier *)specifier
+{
+    return @(jbclient_platform_jbsettings_get_bool("DevMode"));
+}
+
+- (void)setDevMode:(id)value specifier:(PSSpecifier *)specifier
+{
+    BOOL enable = ((NSNumber *)value).boolValue;
+    
+    if(enable) {
+        jbclient_platform_jbsettings_set_bool("DevMode", YES);
+        return;
+    }
+    
+    UIAlertController *confirmationAlertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Alert_Disable_DevMode_Title") message:DOLocalizedString(@"Alert_Disable_DevMode_Body") preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *continueAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Continue") style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            jbclient_platform_jbsettings_set_bool("DevMode", NO);
+    }];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Cancel") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self reloadSpecifiers];
+    }];
+    [confirmationAlertController addAction:continueAction];
+    [confirmationAlertController addAction:cancelAction];
+    [self presentViewController:confirmationAlertController animated:YES completion:nil];
 }
 
 - (void)setRemoveJailbreakEnabled:(id)value specifier:(PSSpecifier *)specifier

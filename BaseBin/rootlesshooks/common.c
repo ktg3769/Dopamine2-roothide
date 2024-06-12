@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sandbox.h>
 #include <sys/mount.h>
 #include "common.h"
+
+enum sandbox_filter_type { SANDBOX_FILTER_NONE };
+extern const enum sandbox_filter_type SANDBOX_CHECK_NO_REPORT;
+extern int sandbox_check(pid_t pid, const char *operation, enum sandbox_filter_type type, ...);
 
 #define APP_PATH_PREFIX "/private/var/containers/Bundle/Application/"
 

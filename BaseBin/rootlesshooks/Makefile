@@ -8,11 +8,11 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = rootlesshooks
 
-rootlesshooks_FILES = $(wildcard src/*.x) $(wildcard src/*.c) $(wildcard src/*.m)
-rootlesshooks_CFLAGS = -Werror -fobjc-arc
-rootlesshooks_LDFLAGS = -rpath @loader_path/.jbroot/Library/Frameworks -rpath @loader_path/fallback
+rootlesshooks_FILES = $(wildcard *.x) $(wildcard *.c) $(wildcard *.m)
+rootlesshooks_CFLAGS = -Werror -fobjc-arc -I../.include
+rootlesshooks_LDFLAGS = -rpath @loader_path/.jbroot/Library/Frameworks -rpath @loader_path/fallback -L../libjailbreak -ljailbreak
 
-src/lsd.x_CFLAGS = -fno-objc-arc #lsd using mrc
+lsd.x_CFLAGS = -fno-objc-arc #lsd using mrc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

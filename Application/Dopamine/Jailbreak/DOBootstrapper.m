@@ -17,7 +17,6 @@
 #import <sys/stat.h>
 
 #define LIBKRW_DOPAMINE_BUNDLED_VERSION @"2.0.1"
-#define LIBROOT_DOPAMINE_BUNDLED_VERSION @"1.0.1"
 #define BASEBIN_LINK_BUNDLED_VERSION @"1.0.0"
 
 struct hfs_mount_args {
@@ -716,6 +715,8 @@ int getCFMajorVersion(void)
         NSString* systemhookFilePath = [NSString stringWithFormat:@"%@/systemhook-%016llX.dylib", NSJBRootPath(@"/basebin"), jbrand()];
         [[NSFileManager defaultManager] copyItemAtPath:NSJBRootPath(@"/basebin/systemhook.dylib") toPath:systemhookFilePath error:nil];
         
+        JBFixMobilePermissions();
+        
         completion(nil);
     }
 }
@@ -797,19 +798,19 @@ int getCFMajorVersion(void)
         }
     }
     
-    NSString *librootInstalledVersion = [self installedVersionForPackageWithIdentifier:@"libroot-dopamine"];
     NSString *libkrwDopamineInstalledVersion = [self installedVersionForPackageWithIdentifier:@"libkrw0-dopamine"];
     NSString *basebinLinkInstalledVersion = [self installedVersionForPackageWithIdentifier:@"dopamine-basebin-link"];
-
-    if (!librootInstalledVersion || ![librootInstalledVersion isEqualToString:LIBROOT_DOPAMINE_BUNDLED_VERSION] ||
+    
+    if ([self fileOrSymlinkExistsAtPath:NSJBRootPath(@"/usr/lib/libroot.dylib")]) {
+        [[NSFileManager defaultManager] removeItemAtPath:NSJBRootPath(@"/usr/lib/libroot.dylib") error:nil];
+    }
+    [[NSFileManager defaultManager] createSymbolicLinkAtPath:NSJBRootPath(@"/usr/lib/libroot.dylib") withDestinationPath:NSJBRootPath(@"/basebin/libroot.dylib") error:nil];
+    
+    if (
         !libkrwDopamineInstalledVersion || ![libkrwDopamineInstalledVersion isEqualToString:LIBKRW_DOPAMINE_BUNDLED_VERSION] ||
         !basebinLinkInstalledVersion || ![basebinLinkInstalledVersion isEqualToString:BASEBIN_LINK_BUNDLED_VERSION]) {
         [[DOUIManager sharedInstance] sendLog:@"Updating Bundled Packages" debug:NO];
-        if (!librootInstalledVersion || ![librootInstalledVersion isEqualToString:LIBROOT_DOPAMINE_BUNDLED_VERSION]) {
-            NSString *librootPath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:@"libroot.deb"];
-            int r = [self installPackage:librootPath];
-            if (r != 0) return [NSError errorWithDomain:bootstrapErrorDomain code:BootstrapErrorCodeFailedFinalising userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to install libroot: %d\n", r]}];
-        }
+
 
         if (!libkrwDopamineInstalledVersion || ![libkrwDopamineInstalledVersion isEqualToString:LIBKRW_DOPAMINE_BUNDLED_VERSION]) {
             NSString *libkrwPath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:@"libkrw-plugin.deb"];

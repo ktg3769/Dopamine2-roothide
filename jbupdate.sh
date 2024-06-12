@@ -1,4 +1,4 @@
-DEVICE=root@iphone12.local
+DEVICE=root@iphone.local
 PORT=22
 ssh $DEVICE -p $PORT "rm -rf /rootfs/var/mobile/Documents/Dopamine.tipa"
 scp -P$PORT -C ./Application/Dopamine.tipa $DEVICE":/rootfs/var/mobile/Documents/Dopamine.tipa"

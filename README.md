@@ -1,17 +1,41 @@
-<img src="https://github.com/opa334/Dopamine/assets/52459150/ed04dd3e-d879-456d-9aa3-d4ed44819c7e" width="64" />
-
 # Dopamine2-roothide
 
-- Document: https://github.com/RootHide/Developer
+- Document: https://github.com/roothide/Developer
 
-- Support: https://twitter.com/RootHideDev
+- Support: https://twitter.com/roothideDev
 
 - Discord: https://discord.com/invite/scqCkumAYp
 
 
-# How To Build tipa
+# How To Build tipa file
 
-fork this repo then goto tab [Actions] -> [build Dopamine2-roothide] -> [Run Workflow] to generate tipa file.
+fork this repo then goto tab [Actions] -> [All Workflows] -> [build tip file] -> [Run Workflow] to build tipa file.
 
-ref to build script [.github/workflows/main.yml](.github/workflows/main.yml) if you want to build on macOS.
+- step 1: Login your github account and fork this project
 
+![text](/.pictures/m1.png)
+![text](/.pictures/m2.png)
+
+
+- step 2: Goto the github Actions tab of your forked project and run workflow to build tip file
+
+![text](/.pictures/m3.png)
+![text](/.pictures/m4.png)
+
+
+- step 3: Refresh the page and you will see the progress of the build, wait a few minutes
+
+![text](/.pictures/m5.png)
+
+
+- step 4: when the build is complete, go to the bottom of the build page to download the tipa file
+
+![text](/.pictures/m6.png)
+
+
+***and you will get the contributor with your name on Credits***
+
+![text](/.pictures/m7.png)
+
+
+*ref to build script [.github/workflows/main.yml](.github/workflows/main.yml) if you want to build on macOS.*

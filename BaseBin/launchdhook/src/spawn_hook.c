@@ -25,8 +25,7 @@ int posix_spawnattr_getprocesstype_np(const posix_spawnattr_t *__restrict, int *
 
 extern char **environ;
 
-extern int systemwide_trust_binary(const char *binaryPath);
-
+extern int systemwide_trust_binary(const char *binaryPath, xpc_object_t preferredArchsArray);
 extern int platform_set_process_debugged(uint64_t pid, bool fullyDebugged);
 
 void *posix_spawn_orig;

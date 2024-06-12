@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 				print_usage();
 				return 2;
 			}
-			return jbclient_trust_binary(filepath);
+			return jbclient_trust_binary(filepath, NULL);
 		}
 	}
 	else if (!strcmp(cmd, "reboot_userspace")) {

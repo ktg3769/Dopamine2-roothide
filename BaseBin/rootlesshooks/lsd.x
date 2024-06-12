@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
-#include "common.h"
+#import <libjailbreak/util.h>
 #include <roothide.h>
+#include "common.h"
 
 %hook _LSCanOpenURLManager
 
@@ -130,17 +131,43 @@ NSURL* new_LSGetInboxURLForBundleIdentifier(NSString* bundleIdentifier)
 	return pathURL;
 }
 
+int (*orig_LSServer_RebuildApplicationDatabases)()=NULL;
+int new_LSServer_RebuildApplicationDatabases()
+{
+	int r = orig_LSServer_RebuildApplicationDatabases();
+
+	if(access(jbroot("/.disable_auto_uicache"), F_OK) == 0) return r;
+
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		// Ensure jailbreak apps are readded to icon cache after the system reloads it
+		// A bit hacky, but works
+		const char *uicachePath = jbroot("/usr/bin/uicache");
+		if (!access(uicachePath, F_OK)) {
+			exec_cmd(uicachePath, "-a", NULL);
+		}
+	});
+
+	return r;
+}
 
 void lsdInit(void)
 {
 	NSLog(@"lsdInit...");
 
 	MSImageRef coreServicesImage = MSGetImageByName("/System/Library/Frameworks/CoreServices.framework/CoreServices");
+
 	void* _LSGetInboxURLForBundleIdentifier = MSFindSymbol(coreServicesImage, "__LSGetInboxURLForBundleIdentifier");
 	NSLog(@"coreServicesImage=%p, _LSGetInboxURLForBundleIdentifier=%p", coreServicesImage, _LSGetInboxURLForBundleIdentifier);
 	if(_LSGetInboxURLForBundleIdentifier)
 	{
 		MSHookFunction(_LSGetInboxURLForBundleIdentifier, (void *)&new_LSGetInboxURLForBundleIdentifier, (void **)&orig_LSGetInboxURLForBundleIdentifier);
+	}
+	
+	void* _LSServer_RebuildApplicationDatabases = MSFindSymbol(coreServicesImage, "__LSServer_RebuildApplicationDatabases");
+	NSLog(@"coreServicesImage=%p, _LSServer_RebuildApplicationDatabases=%p", coreServicesImage, _LSServer_RebuildApplicationDatabases);
+	if(_LSServer_RebuildApplicationDatabases)
+	{
+		MSHookFunction(_LSServer_RebuildApplicationDatabases, (void *)&new_LSServer_RebuildApplicationDatabases, (void **)&orig_LSServer_RebuildApplicationDatabases);
 	}
 
 	%init();

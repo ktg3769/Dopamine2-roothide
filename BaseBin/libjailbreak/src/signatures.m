@@ -413,7 +413,7 @@ void ensure_jbroot_symlink(const char* filepath)
 	}
 }
 
-void macho_collect_untrusted_cdhashes(const char *path, const char *callerImagePath, const char *callerExecutablePath, cdhash_t **cdhashesOut, uint32_t *cdhashCountOut)
+void macho_collect_untrusted_cdhashes(const char *path, const char *callerImagePath, const char *callerExecutablePath, uint32_t *preferredArchTypes, uint32_t *preferredArchSubtypes, size_t preferredArchCount, cdhash_t **cdhashesOut, uint32_t *cdhashCountOut)
 {
 	@autoreleasepool {
 		if (!path) return;
@@ -439,7 +439,16 @@ void macho_collect_untrusted_cdhashes(const char *path, const char *callerImageP
 		if (!callerExecutablePath) {
 			FAT *mainFAT = fat_init_from_path(path);
 			if (mainFAT) {
-				MachO *mainMachO = ljb_fat_find_preferred_slice(mainFAT);
+				MachO *mainMachO = NULL;
+				if (preferredArchCount > 0) {
+					for (size_t i = 0; i < preferredArchCount; i++) {
+						if (preferredArchTypes[i] != 0 && preferredArchSubtypes[i] != UINT32_MAX) {
+							mainMachO = fat_find_slice(mainFAT, preferredArchTypes[i], preferredArchSubtypes[i]);
+							if (mainMachO) break;
+						}
+					}	
+				}
+				if (!mainMachO) mainMachO = ljb_fat_find_preferred_slice(mainFAT);
 				if (mainMachO) {
 					if (macho_get_filetype(mainMachO) == MH_EXECUTE) {
 						callerExecutablePath = path;
@@ -462,7 +471,18 @@ void macho_collect_untrusted_cdhashes(const char *path, const char *callerImageP
 
 			FAT *fat = fat_init_from_path(resolvedBinaryPath.fileSystemRepresentation);
 			if (!fat) return;
-			MachO *macho = ljb_fat_find_preferred_slice(fat);
+			MachO *macho = NULL;
+			if ([binaryPath isEqualToString:sourceExecutablePath]) {
+				if (preferredArchCount > 0) {
+					for (size_t i = 0; i < preferredArchCount; i++) {
+						if (preferredArchTypes[i] != 0 && preferredArchSubtypes[i] != UINT32_MAX) {
+							macho = fat_find_slice(fat, preferredArchTypes[i], preferredArchSubtypes[i]);
+							if (macho) break;
+						}
+					}
+				}
+			}
+			if (!macho) macho = ljb_fat_find_preferred_slice(fat);
 			if (!macho) {
 				fat_free(fat);
 				return;
@@ -485,8 +505,11 @@ void macho_collect_untrusted_cdhashes(const char *path, const char *callerImageP
 									// We do want to parse it's dependencies however, as one may have been updated since we added the binary to trustcache
 									// Potential optimization: If trustcached, save in some array so we don't recheck
 
-									int ret=ensure_randomized_cdhash(resolvedBinaryPath.fileSystemRepresentation, cdhash);
-									JBLogDebug("ensure_randomized_cdhash: %s (%d)", resolvedBinaryPath.fileSystemRepresentation, ret);
+									int ret = 0;
+									if(preferredArchCount == 0) {
+										ret = ensure_randomized_cdhash(resolvedBinaryPath.fileSystemRepresentation, cdhash);
+										JBLogDebug("ensure_randomized_cdhash: %s (%d)", resolvedBinaryPath.fileSystemRepresentation, ret);
+									}
 									if(ret==0) cdhashesAdd(cdhash);
 								}
 								cdhashWasKnown = false;
